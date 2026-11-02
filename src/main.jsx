@@ -176,6 +176,7 @@ function Landing() {
             <span>WATCHLIST</span>
             <span>FAVORITES</span>
           </div>
+
           <h3>Recently added</h3>
           <div className="mini-shelf">
             {posters.slice(0, 6).map((m) => (
@@ -670,3 +671,4 @@ createRoot(document.getElementById("root")).render(
     <App />
   </BrowserRouter>,
 );
+
