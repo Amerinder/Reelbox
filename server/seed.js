@@ -16,7 +16,7 @@ const catalogItems = [
     title: "The Dark Knight",
     type: "Movie",
     year: "2008",
-    genre: "Crime · Drama",
+    genre: "Crime · Action · Drama",
     description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
   },
   {
@@ -28,7 +28,7 @@ const catalogItems = [
     description: "An epic modern retelling of Homer's legendary journey across mythological seas, facing monsters, gods, and impossible trials to return home.",
   },
   {
-    file: "/Posters/images.jpg",
+    file: "/Posters/saiyaara.jpg",
     title: "Saiyaara",
     type: "Movie",
     year: "2025",
@@ -36,47 +36,23 @@ const catalogItems = [
     description: "A tender, poetic exploration of two souls colliding across different worlds, intertwined by music, unspoken yearning, and memories that refuse to fade.",
   },
   {
-    file: "/Posters/images (1).jpg",
-    title: "Interstellar",
+    file: "/Posters/openhimer.jpg",
+    title: "Oppenheimer",
     type: "Movie",
-    year: "2014",
-    genre: "Sci-Fi · Drama",
-    description: "A team of explorers travels through a wormhole in space in an attempt to ensure humanity's survival as Earth faces catastrophic environmental collapse.",
+    year: "2023",
+    genre: "Biography · Drama · History",
+    description: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during the Manhattan Project.",
   },
   {
-    file: "/Posters/images (2).jpg",
-    title: "Inception",
+    file: "/Posters/batman.jpg",
+    title: "The Batman",
     type: "Movie",
-    year: "2010",
-    genre: "Sci-Fi · Thriller",
-    description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+    year: "2022",
+    genre: "Action · Crime · Drama",
+    description: "When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption and question his family's involvement.",
   },
   {
-    file: "/Posters/images (3).jpg",
-    title: "The Godfather",
-    type: "Movie",
-    year: "1972",
-    genre: "Crime · Drama",
-    description: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
-  },
-  {
-    file: "/Posters/images (4).jpg",
-    title: "La La Land",
-    type: "Movie",
-    year: "2016",
-    genre: "Romance · Musical",
-    description: "While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations for the future.",
-  },
-  {
-    file: "/Posters/images (5).jpg",
-    title: "Whiplash",
-    type: "Movie",
-    year: "2014",
-    genre: "Drama · Music",
-    description: "A promising young drummer enrolls at a cut-throat music conservatory where his dreams of greatness are mentored by an instructor who will stop at nothing to realize a student's potential.",
-  },
-  {
-    file: "/Posters/images (6).jpg",
+    file: "/Posters/dune.jpg",
     title: "Dune",
     type: "Movie",
     year: "2021",
@@ -84,28 +60,60 @@ const catalogItems = [
     description: "A noble family becomes embroiled in a war for control over the galaxy's most valuable asset while its heir becomes troubled by visions of a dark future.",
   },
   {
-    file: "/Posters/images (7).jpg",
-    title: "Parasite",
+    file: "/Posters/avengersinfinity war.jpg",
+    title: "Avengers: Infinity War",
+    type: "Movie",
+    year: "2018",
+    genre: "Action · Sci-Fi · Adventure",
+    description: "The Avengers and their allies must be willing to sacrifice all in an attempt to defeat the powerful Thanos before his blitz of devastation and ruin puts an end to the universe.",
+  },
+  {
+    file: "/Posters/avtar.jpg",
+    title: "Avatar",
+    type: "Movie",
+    year: "2009",
+    genre: "Sci-Fi · Adventure · Action",
+    description: "A paraplegic Marine dispatched to the moon Pandora on a unique mission becomes torn between following his orders and protecting the world he feels is his home.",
+  },
+  {
+    file: "/Posters/animal.jpg",
+    title: "Animal",
+    type: "Movie",
+    year: "2023",
+    genre: "Action · Crime · Drama",
+    description: "The son of a wealthy and powerful industrialist returns home following an attack on his father and embarks on a bloody path of vengeance.",
+  },
+  {
+    file: "/Posters/joker.jpg",
+    title: "Joker",
     type: "Movie",
     year: "2019",
-    genre: "Thriller · Drama",
-    description: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    genre: "Crime · Drama · Thriller",
+    description: "During the 1980s, a failed stand-up comedian is driven insane and turns to a life of crime and chaos in Gotham City while becoming an infamous psychopathic crime figure.",
   },
   {
-    file: "/Posters/images (8).jpg",
-    title: "The Grand Budapest Hotel",
+    file: "/Posters/spidermandrandnewday.jpg",
+    title: "Spider-Man: Brand New Day",
     type: "Movie",
-    year: "2014",
-    genre: "Comedy · Drama",
-    description: "A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy in the hotel's glorious years under an exceptional concierge.",
+    year: "2026",
+    genre: "Action · Adventure · Sci-Fi",
+    description: "Peter Parker navigates life in New York with a clean slate, stepping up as the friendly neighborhood hero when new threats emerge across the borough.",
   },
   {
-    file: "/Posters/images (9).jpg",
-    title: "Everything Everywhere All at Once",
+    file: "/Posters/starwars.jpg",
+    title: "Star Wars",
     type: "Movie",
-    year: "2022",
-    genre: "Fantasy · Drama",
-    description: "A middle-aged Chinese immigrant is swept up into an insane adventure in which she alone can save existence by exploring other universes and connecting with the lives she could have led.",
+    year: "1977",
+    genre: "Action · Adventure · Fantasy",
+    description: "Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station.",
+  },
+  {
+    file: "/Posters/mahavatar.jpg",
+    title: "Mahavatar",
+    type: "Movie",
+    year: "2026",
+    genre: "Mythology · Epic · Action",
+    description: "An awe-inspiring mythological spectacle chronicling the timeless saga of Chiranjeevi Parashurama, defender of righteousness and eternal warrior.",
   },
 ];
 
@@ -122,39 +130,51 @@ async function seedDatabase() {
     await mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB!");
 
-    // Clear existing data
+    // 1. Remove old movies and re-insert the 13 accurate catalog items with updated posters
     await Movie.deleteMany({});
-    await WatchEntry.deleteMany({});
-    await Collection.deleteMany({});
-    await User.deleteMany({});
-    console.log("Cleared existing data.");
+    const createdMovies = await Movie.insertMany(catalogItems);
+    console.log(`Seeded ${createdMovies.length} catalog items into MongoDB with updated poster paths.`);
 
-    // Create sample accounts
+    // 2. Update any existing watch entries to point to the new poster paths
+    for (const item of catalogItems) {
+      await WatchEntry.updateMany(
+        { title: { $regex: new RegExp(`^${item.title}$`, "i") } },
+        { $set: { file: item.file, year: item.year, genre: item.genre } }
+      );
+    }
+    console.log("Synchronized existing watch entries with updated poster files.");
+
+    // 3. Ensure collections exist
+    for (const sc of sampleCollections) {
+      await Collection.findOneAndUpdate(
+        { name: sc.name },
+        { $set: sc },
+        { upsert: true, new: true }
+      );
+    }
+    console.log(`Ensured ${sampleCollections.length} collections exist.`);
+
+    // 4. Ensure default users exist without deleting existing users
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash("password123", salt);
+    const defaultUsers = [
+      { name: "amerinder", bio: "Curating stories that linger long after the credits roll." },
+      { name: "cinephile", bio: "Obsessed with cinema, anime arcs, and late night thrillers." },
+      { name: "anshu", bio: "Cinema lover and collector." },
+    ];
+    for (const u of defaultUsers) {
+      const existing = await User.findOne({ name: u.name });
+      if (!existing) {
+        await User.create({
+          name: u.name,
+          password: hashedPassword,
+          bio: u.bio,
+        });
+        console.log(`Created user '${u.name}'.`);
+      }
+    }
 
-    await User.create({
-      name: "amerinder",
-      password: hashedPassword,
-      bio: "Curating stories that linger long after the credits roll.",
-    });
-
-    await User.create({
-      name: "cinephile",
-      password: hashedPassword,
-      bio: "Obsessed with cinema, anime arcs, and late night thrillers.",
-    });
-    console.log("Created users: 'amerinder' & 'cinephile' (no watch entries - unwatched by default).");
-
-    // Insert Movie catalog items (unwatched by default for all users!)
-    const createdMovies = await Movie.insertMany(catalogItems);
-    console.log(`Seeded ${createdMovies.length} catalog items into MongoDB (all unwatched).`);
-
-    // Insert collections
-    await Collection.insertMany(sampleCollections);
-    console.log(`Seeded ${sampleCollections.length} collections into MongoDB.`);
-
-    console.log("Database successfully seeded: all movies are unwatched by default!");
+    console.log("Database successfully updated with accurate poster files!");
     process.exit(0);
   } catch (error) {
     console.error("Seeding error:", error);

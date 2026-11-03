@@ -133,26 +133,32 @@ router.get("/:id", async (req, res) => {
       $or: [{ movieId: movie._id }, { title: movie.title }],
     }).sort({ createdAt: -1 });
 
-    const ratedReviews = reviews.filter((r) => r.rating > 0);
+    const watchedReviews = reviews.filter((r) => !r.watchlist);
+    const ratedReviews = watchedReviews.filter((r) => r.rating > 0);
     const totalRatings = ratedReviews.length;
     const sumRatings = ratedReviews.reduce((sum, r) => sum + r.rating, 0);
     const avgRating = totalRatings ? (sumRatings / totalRatings).toFixed(1) : 5.0;
 
+    const { username } = req.query;
+    const userEntry = username ? reviews.find((r) => r.username === username) || null : null;
+
     res.json({
       movie,
+      userEntry,
       stats: {
         avgRating: Number(avgRating),
-        totalReviews: reviews.length,
-        totalWatched: reviews.filter((r) => !r.watchlist).length,
+        totalReviews: watchedReviews.length,
+        totalWatched: watchedReviews.length,
         totalWatchlist: reviews.filter((r) => r.watchlist).length,
       },
-      reviews: reviews.map((r) => ({
+      reviews: watchedReviews.map((r) => ({
         _id: r._id,
         username: r.username,
         rating: r.rating,
         note: r.note,
         favorite: r.favorite,
         watchlist: r.watchlist,
+        collectionName: r.collectionName || "",
         createdAt: r.createdAt,
       })),
     });
@@ -169,7 +175,7 @@ router.get("/:id", async (req, res) => {
 router.post("/:id/review", async (req, res) => {
   try {
     const { id } = req.params;
-    const { username = "demo", userId, rating, note, favorite, watchlist } = req.body;
+    const { username = "demo", userId, rating, note, favorite, watchlist, collectionName } = req.body;
 
     let movie = null;
     if (mongoose.Types.ObjectId.isValid(id)) {
@@ -195,10 +201,11 @@ router.post("/:id/review", async (req, res) => {
         year: movie.year,
         genre: movie.genre,
         file: movie.file,
-        rating: Number(rating) || 5,
-        note: note || "",
-        favorite: Boolean(favorite),
+        rating: Boolean(watchlist) ? 0 : Number(rating) || 5,
+        note: Boolean(watchlist) ? "" : (note || ""),
+        favorite: Boolean(watchlist) ? false : Boolean(favorite),
         watchlist: Boolean(watchlist),
+        collectionName: collectionName !== undefined ? collectionName : "",
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
@@ -216,7 +223,7 @@ router.post("/:id/review", async (req, res) => {
  */
 router.get("/", async (req, res) => {
   try {
-    const { username, query, tab, type } = req.query;
+    const { username, query, tab, type, collection } = req.query;
     const filter = {};
 
     if (username) {
@@ -231,6 +238,10 @@ router.get("/", async (req, res) => {
       filter.favorite = true;
     } else if (tab === "Watchlist") {
       filter.watchlist = true;
+    }
+
+    if (collection) {
+      filter.collectionName = collection;
     }
 
     if (type && ["Movie", "Series", "Anime"].includes(type)) {
@@ -264,6 +275,7 @@ router.post("/", async (req, res) => {
       userId,
       watchlist = false,
       favorite = false,
+      collectionName = "",
     } = req.body;
 
     if (!title || !title.trim()) {
@@ -284,7 +296,7 @@ router.post("/", async (req, res) => {
         year: year || new Date().getFullYear().toString(),
         genre: genre || "Unfiled",
         description: description || "A captivating story curated in Reelbox.",
-        file: file || "/Posters/images.jpg",
+        file: file || "/Posters/saiyaara.jpg",
         addedBy: username,
       });
       await catalogMovie.save();
@@ -305,10 +317,11 @@ router.post("/", async (req, res) => {
         year: catalogMovie.year,
         genre: catalogMovie.genre,
         file: catalogMovie.file,
-        rating: Number(rating) || 5,
-        note: note || "",
-        favorite: Boolean(favorite),
+        rating: Boolean(watchlist) ? 0 : Number(rating) || 5,
+        note: Boolean(watchlist) ? "" : (note || ""),
+        favorite: Boolean(watchlist) ? false : Boolean(favorite),
         watchlist: Boolean(watchlist),
+        collectionName: collectionName || "",
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );

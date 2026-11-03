@@ -9,7 +9,7 @@ export const defaultPosters = [
     "The Dark Knight",
     "Movie",
     "2008",
-    "Crime · Drama",
+    "Crime · Action · Drama",
   ],
   [
     "xl_the-odyssey-movie-poster_81db230a.jpg",
@@ -18,22 +18,29 @@ export const defaultPosters = [
     "2026",
     "Adventure · Epic",
   ],
-  ["images.jpg", "Saiyaara", "Movie", "2025", "Romance · Drama"],
-  ["images (1).jpg", "Interstellar", "Movie", "2014", "Sci-Fi · Drama"],
-  ["images (2).jpg", "Inception", "Movie", "2010", "Sci-Fi · Thriller"],
-  ["images (3).jpg", "The Godfather", "Movie", "1972", "Crime · Drama"],
-  ["images (4).jpg", "La La Land", "Movie", "2016", "Romance · Musical"],
-  ["images (5).jpg", "Whiplash", "Movie", "2014", "Drama · Music"],
-  ["images (6).jpg", "Dune", "Movie", "2021", "Sci-Fi · Adventure"],
-  ["images (7).jpg", "Parasite", "Movie", "2019", "Thriller · Drama"],
-  ["images (8).jpg", "The Grand Budapest Hotel", "Movie", "2014", "Comedy · Drama"],
+  ["saiyaara.jpg", "Saiyaara", "Movie", "2025", "Romance · Drama"],
+  ["openhimer.jpg", "Oppenheimer", "Movie", "2023", "Biography · Drama"],
+  ["batman.jpg", "The Batman", "Movie", "2022", "Action · Crime · Drama"],
+  ["dune.jpg", "Dune", "Movie", "2021", "Sci-Fi · Adventure"],
   [
-    "images (9).jpg",
-    "Everything Everywhere All at Once",
+    "avengersinfinity war.jpg",
+    "Avengers: Infinity War",
     "Movie",
-    "2022",
-    "Fantasy · Drama",
+    "2018",
+    "Action · Sci-Fi · Adventure",
   ],
+  ["avtar.jpg", "Avatar", "Movie", "2009", "Sci-Fi · Adventure · Action"],
+  ["animal.jpg", "Animal", "Movie", "2023", "Action · Crime · Drama"],
+  ["joker.jpg", "Joker", "Movie", "2019", "Crime · Drama · Thriller"],
+  [
+    "spidermandrandnewday.jpg",
+    "Spider-Man: Brand New Day",
+    "Movie",
+    "2026",
+    "Action · Adventure · Sci-Fi",
+  ],
+  ["starwars.jpg", "Star Wars", "Movie", "1977", "Action · Adventure · Fantasy"],
+  ["mahavatar.jpg", "Mahavatar", "Movie", "2026", "Mythology · Epic · Action"],
 ].map(([file, title, type, year, genre], i) => ({
   _id: `default-${i + 1}`,
   id: i + 1,
@@ -88,23 +95,38 @@ export function PosterWall({ dim = false, movies = defaultPosters }) {
 
 export function Landing() {
   const [featuredMovies, setFeaturedMovies] = useState(defaultPosters);
+  const [suggestedMovies, setSuggestedMovies] = useState([]);
   const [user, setUser] = useState(null);
   const [communityOpen, setCommunityOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const nav = useNavigate();
 
   useEffect(() => {
     const saved = localStorage.getItem("reelbox_user");
+    let currentUser = null;
     if (saved) {
       try {
-        setUser(JSON.parse(saved));
+        currentUser = JSON.parse(saved);
+        setUser(currentUser);
       } catch {}
     }
 
-    fetch("/api/movies")
+    fetch("/api/movies/search")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length) {
           setFeaturedMovies(data);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch movies the user has NOT watched yet from the database
+    const queryUser = currentUser?.name ? `?username=${encodeURIComponent(currentUser.name)}` : "";
+    fetch(`/api/movies/unwatched${queryUser}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSuggestedMovies(data);
         }
       })
       .catch(() => {});
@@ -129,38 +151,43 @@ export function Landing() {
         <PosterWall movies={featuredMovies} />
         <nav>
           <Mark />
-          <div className="nav-links">
-            <Link to="/collection">The collection</Link>
+          <div className="nav-common-bar">
+            <Link to="/collection" className="nav-common-btn">
+              The collection
+            </Link>
             <button
+              type="button"
+              className="nav-common-btn"
               onClick={() => setCommunityOpen(true)}
-              style={{ background: "none", border: 0, color: "inherit", cursor: "pointer", font: "inherit" }}
             >
               Cinephiles
             </button>
+            <button
+              type="button"
+              className="nav-common-btn"
+              onClick={() => setAddModalOpen(true)}
+            >
+              ⌕ Search & Add
+            </button>
             {user ? (
               <>
-                <Link to="/collection" className="tiny-button">
+                <Link to="/collection" className="nav-common-btn">
                   My Reelbox ({user.name})
                 </Link>
                 <button
+                  type="button"
+                  className="nav-common-btn"
                   onClick={handleSignOut}
-                  style={{
-                    background: "none",
-                    border: "1px solid var(--line)",
-                    borderRadius: 99,
-                    color: "#aaa5b1",
-                    padding: "6px 12px",
-                    cursor: "pointer",
-                    fontSize: 12,
-                  }}
                 >
                   Sign out
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login">Sign in</Link>
-                <Link className="tiny-button" to="/signup">
+                <Link to="/login" className="nav-common-btn">
+                  Sign in
+                </Link>
+                <Link to="/signup" className="nav-common-btn">
                   Get started
                 </Link>
               </>
@@ -230,39 +257,55 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Suggested Unwatched Movies from Database */}
       <section id="preview" className="showcase">
         <div className="showcase-top">
           <div>
-            <p className="eyebrow">A GLIMPSE INSIDE</p>
+            <p className="eyebrow">DISCOVER STORIES</p>
             <h2>
-              Your collection,
+              Suggested for you,
               <br />
-              <i>on your terms.</i>
+              <i>waiting to be watched.</i>
             </h2>
           </div>
           <Link to="/collection" className="text-link">
-            Open the library <Arrow />
+            Open your library <Arrow />
           </Link>
         </div>
         <div className="preview-window">
           <div className="preview-nav">
             <Mark />
-            <span>MY COLLECTION</span>
-            <span>WATCHLIST</span>
-            <span>FAVORITES</span>
+            <span>UNWATCHED IN DATABASE</span>
+            <span>CATALOG SUGGESTIONS</span>
           </div>
-          <h3>Recently added</h3>
-          <div className="mini-shelf">
-            {featuredMovies.slice(0, 6).map((m) => (
-              <img
-                key={m._id || m.id}
-                src={m.file}
-                alt={m.title}
-                style={{ cursor: "pointer" }}
-                onClick={() => nav(`/movie/${m.movieId || m._id || m.id}`)}
-              />
-            ))}
-          </div>
+          <h3>{user ? `Recommendations for ${user.name}` : "Curated Unwatched Cinema"}</h3>
+          {suggestedMovies.length > 0 ? (
+            <div className="suggested-shelf-grid">
+              {suggestedMovies.slice(0, 6).map((m) => (
+                <div
+                  key={m._id || m.id}
+                  className="suggested-card"
+                  onClick={() => nav(`/movie/${m._id || m.id}`)}
+                >
+                  <img src={m.file} alt={m.title} />
+                  <div className="suggested-card-body">
+                    <b>{m.title}</b>
+                    <div className="suggested-card-meta">
+                      <span className={`type-badge ${(m.type || "Movie").toLowerCase()}`}>
+                        {m.type || "Movie"}
+                      </span>
+                      <span>{m.year}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <b>You've watched all catalog titles!</b>
+              <p>Add a new cinema using the Search & Add button in the navigation bar.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -288,6 +331,16 @@ export function Landing() {
 
       {communityOpen && (
         <CommunityModal close={() => setCommunityOpen(false)} />
+      )}
+      {addModalOpen && (
+        <SearchAddModal
+          close={() => setAddModalOpen(false)}
+          user={user}
+          onTitleAdded={() => {
+            setAddModalOpen(false);
+            nav("/collection");
+          }}
+        />
       )}
     </main>
   );
@@ -406,28 +459,281 @@ export function Auth({ signup = false }) {
   );
 }
 
-export function MovieCard({ movie, onClick }) {
+export function MovieCard({ movie, onClick, onEdit, onDelete }) {
   const nav = useNavigate();
   return (
-    <button
-      className="movie-card"
-      onClick={() => {
-        if (onClick) onClick(movie);
-        else nav(`/movie/${movie.movieId || movie._id || movie.id}`);
-      }}
-    >
-      <img loading="lazy" src={movie.file} alt={movie.title} />
-      <span className="movie-overlay">
-        <b>{movie.title}</b>
-        <small>
-          <span className={`type-badge ${(movie.type || "Movie").toLowerCase()}`}>
-            {movie.type || "Movie"}
-          </span>
-          {"★".repeat(movie.rating || 5)} <em>{movie.year}</em>
-        </small>
-        <small>{movie.genre}</small>
-      </span>
-    </button>
+    <div className="movie-card-wrap">
+      {(onEdit || onDelete) && (
+        <div className="card-action-bar" onClick={(e) => e.stopPropagation()}>
+          {onEdit && (
+            <button
+              type="button"
+              className="card-action-btn edit"
+              title="Edit title / review / shelf"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(movie);
+              }}
+            >
+              ✎ Edit
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="card-action-btn delete"
+              title="Delete from Reelbox"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(movie);
+              }}
+            >
+              🗑
+            </button>
+          )}
+        </div>
+      )}
+      <button
+        type="button"
+        className="movie-card"
+        onClick={() => {
+          if (onClick) onClick(movie);
+          else nav(`/movie/${movie.movieId || movie._id || movie.id}`);
+        }}
+      >
+        <img loading="lazy" src={movie.file} alt={movie.title} />
+        <span className="movie-overlay">
+          <b>{movie.title}</b>
+          <small>
+            <span className={`type-badge ${(movie.type || "Movie").toLowerCase()}`}>
+              {movie.type || "Movie"}
+            </span>
+            {movie.watchlist ? (
+              <span className="watchlist-badge">⏱ Watchlist</span>
+            ) : (
+              <span>{"★".repeat(movie.rating || 5)}</span>
+            )}{" "}
+            <em>{movie.year}</em>
+          </small>
+          <small>{movie.genre}</small>
+          {movie.collectionName && (
+            <span className="card-shelf-tag">📁 {movie.collectionName}</span>
+          )}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+export function EditCinemaModal({ movie, close, collections = [], onSave, onDelete }) {
+  const [rating, setRating] = useState(movie.rating || 5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [note, setNote] = useState(movie.note || "");
+  const [favorite, setFavorite] = useState(Boolean(movie.favorite));
+  const [watchlist, setWatchlist] = useState(Boolean(movie.watchlist));
+  const [collectionName, setCollectionName] = useState(movie.collectionName || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        rating: watchlist ? 0 : Number(rating),
+        note: watchlist ? "" : note.trim(),
+        favorite: watchlist ? false : favorite,
+        watchlist: Boolean(watchlist),
+        collectionName: collectionName || "",
+      };
+
+      const res = await fetch(`/api/movies/${encodeURIComponent(movie._id || movie.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        onSave(updated);
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to update entry");
+      }
+    } catch (err) {
+      console.error("Save edit error:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-back" onMouseDown={close}>
+      <div className="collection-modal search-modal-wrap" onMouseDown={(e) => e.stopPropagation()}>
+        <button type="button" className="close" onClick={close}>
+          ×
+        </button>
+
+        <div className="curate-vault-container">
+          <div className="curate-hero-card">
+            <div className="curate-poster-box">
+              <img
+                src={movie.file || "/Posters/saiyaara.jpg"}
+                alt={movie.title}
+                className="curate-poster-img"
+              />
+            </div>
+            <div className="curate-hero-details">
+              <div className="curate-tags-row">
+                <span className={`type-badge ${(movie.type || "Movie").toLowerCase()}`}>
+                  {movie.type || "Movie"}
+                </span>
+                <span className="curate-dot">•</span>
+                <span className="curate-eyebrow">EDIT REELBOX ENTRY</span>
+              </div>
+              <h2 className="curate-title">{movie.title}</h2>
+              <div className="curate-meta-line">
+                <span className="curate-year">{movie.year}</span>
+                <span className="curate-dot">•</span>
+                <span className="curate-genre">{movie.genre || "Cinema"}</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="curate-form">
+            {/* Watch Status & Shelf */}
+            <div className="curate-grid-two">
+              <div className="curate-field-group">
+                <label>Watch Status</label>
+                <div className="curate-toggle-group">
+                  <button
+                    type="button"
+                    className={`curate-toggle-btn ${!watchlist ? "active" : ""}`}
+                    onClick={() => setWatchlist(false)}
+                  >
+                    <span>✓</span> Watched
+                  </button>
+                  <button
+                    type="button"
+                    className={`curate-toggle-btn ${watchlist ? "active" : ""}`}
+                    onClick={() => setWatchlist(true)}
+                  >
+                    <span>⏱</span> Save to Watchlist
+                  </button>
+                </div>
+              </div>
+
+              <div className="curate-field-group">
+                <label>Collection Shelf</label>
+                <div className="curate-select-wrap">
+                  <select
+                    className="curate-select"
+                    value={collectionName}
+                    onChange={(e) => setCollectionName(e.target.value)}
+                  >
+                    <option value="">No Shelf (Unfiled)</option>
+                    {collections.map((c) => (
+                      <option key={c} value={c}>
+                        📁 {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {watchlist ? (
+              <div className="watchlist-mode-notice" style={{ margin: "8px 0 16px" }}>
+                <span className="notice-icon">⏱</span>
+                <div>
+                  <b>Watchlist Mode (Unwatched)</b>
+                  <p>This title is stored in your Watchlist. Ratings and personal reviews are reserved for stories you have watched.</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Interactive Star Rating */}
+                <div className="curate-field-group">
+                  <div className="curate-field-header">
+                    <label>Your Rating</label>
+                    <span className="curate-rating-badge">
+                      {(hoverRating || rating) === 5 && "★★★★★ · 5.0 Masterpiece"}
+                      {(hoverRating || rating) === 4 && "★★★★☆ · 4.0 Great Story"}
+                      {(hoverRating || rating) === 3 && "★★★☆☆ · 3.0 Good Watch"}
+                      {(hoverRating || rating) === 2 && "★★☆☆☆ · 2.0 Mediocre"}
+                      {(hoverRating || rating) === 1 && "★☆☆☆☆ · 1.0 Not for me"}
+                    </span>
+                  </div>
+                  <div className="curate-stars-row">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        className={`star-btn ${(hoverRating || rating) >= star ? "active" : ""}`}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        title={`${star} Stars`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="star-score-num">{rating} / 5</span>
+                  </div>
+                </div>
+
+                {/* Personal Review */}
+                <div className="curate-field-group">
+                  <div className="curate-field-header">
+                    <label>Personal Review & Memories</label>
+                    <span className="curate-hint">Saved to cinema page</span>
+                  </div>
+                  <textarea
+                    className="curate-textarea"
+                    rows="3"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Leave a thought for your future self..."
+                  />
+                </div>
+
+                {/* Favorite Toggle */}
+                <div className="curate-fav-row">
+                  <button
+                    type="button"
+                    className={`curate-fav-btn ${favorite ? "active" : ""}`}
+                    onClick={() => setFavorite(!favorite)}
+                  >
+                    <span className="fav-heart">{favorite ? "♥" : "♡"}</span>
+                    <span className="fav-text">
+                      {favorite ? "Favorited in your Vault" : "Mark as Favorite (♥)"}
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Actions */}
+            <div className="curate-actions-footer">
+              <button className="button curate-save-btn" type="submit" disabled={saving}>
+                <span>{saving ? "Saving..." : "Save Changes"}</span>
+                <Arrow />
+              </button>
+              <button
+                type="button"
+                className="line-button"
+                style={{ borderColor: "#ef444455", color: "#f87171" }}
+                onClick={() => {
+                  close();
+                  if (onDelete) onDelete(movie);
+                }}
+              >
+                🗑 Remove
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -441,6 +747,7 @@ export function Collection() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [communityOpen, setCommunityOpen] = useState(false);
+  const [editingMovie, setEditingMovie] = useState(null);
 
   const [collections, setCollections] = useState([
     "Late Night",
@@ -450,6 +757,7 @@ export function Collection() {
   ]);
   const [newCollection, setNewCollection] = useState("");
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("reelbox_user");
@@ -503,12 +811,15 @@ export function Collection() {
       movies.filter(
         (m) =>
           m.title.toLowerCase().includes(query.toLowerCase()) &&
-          (tab === "All" ||
-            (tab === "Favorites" && m.favorite) ||
-            (tab === "Watchlist" && m.watchlist)) &&
+          (tab === "Collection"
+            ? (m.collectionName || "").toLowerCase() === (selectedCollection || "").toLowerCase()
+            : tab === "All"
+            ? !m.watchlist
+            : (tab === "Favorites" && m.favorite) ||
+              (tab === "Watchlist" && m.watchlist)) &&
           (typeFilter === "All" || m.type === typeFilter),
       ),
-    [movies, query, tab, typeFilter],
+    [movies, query, tab, selectedCollection, typeFilter],
   );
 
   const handleAddCollection = async () => {
@@ -532,6 +843,70 @@ export function Collection() {
     }
   };
 
+  const handleDeleteCollection = async (colName) => {
+    const confirmed = window.confirm(
+      `Delete the shelf "${colName}"? Titles on this shelf will not be deleted, but will become unfiled.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/collections/${encodeURIComponent(colName)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setCollections((prev) => prev.filter((c) => c !== colName));
+        setMovies((prev) =>
+          prev.map((m) =>
+            m.collectionName === colName ? { ...m, collectionName: "" } : m
+          )
+        );
+        if (selectedCollection === colName) {
+          setSelectedCollection(null);
+          setTab("All");
+        }
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to delete collection");
+      }
+    } catch (err) {
+      console.error("Error deleting collection:", err);
+    }
+  };
+
+  const handleDeleteMovie = async (movie) => {
+    const confirmed = window.confirm(`Remove "${movie.title}" from your Reelbox?`);
+    if (!confirmed) return;
+
+    try {
+      const id = movie._id || movie.id;
+      const res = await fetch(`/api/movies/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setMovies((prev) =>
+          prev.filter((m) => (m._id || m.id) !== id && m.movieId !== id)
+        );
+      } else {
+        const err = await res.json();
+        alert(err.message || "Failed to remove title");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  const handleSaveEdit = (updated) => {
+    setMovies((prev) =>
+      prev.map((m) =>
+        (m._id || m.id) === (updated._id || updated.id) ||
+        (m.movieId && m.movieId === updated.movieId)
+          ? { ...m, ...updated }
+          : m
+      )
+    );
+    setEditingMovie(null);
+  };
+
   const handleSignOut = () => {
     localStorage.removeItem("reelbox_user");
     setUser(null);
@@ -542,23 +917,53 @@ export function Collection() {
     ? user.name.slice(0, 2).toUpperCase()
     : "AM";
 
+  const watchedCount = movies.filter((m) => !m.watchlist).length;
+  const favoritesCount = movies.filter((m) => m.favorite).length;
+  const watchlistCount = movies.filter((m) => m.watchlist).length;
+
   return (
     <main className="library">
       <header className="library-head">
         <Mark />
         <div className="library-links">
           <button onClick={() => nav("/")}>Home</button>
-          <button className={tab === "All" ? "active" : ""} onClick={() => setTab("All")}>
+          <button
+            className={tab === "All" ? "active" : ""}
+            onClick={() => {
+              setTab("All");
+              setSelectedCollection(null);
+            }}
+          >
             My Collection
           </button>
-          <button className={tab === "Watchlist" ? "active" : ""} onClick={() => setTab("Watchlist")}>
+          <button
+            className={tab === "Watchlist" ? "active" : ""}
+            onClick={() => {
+              setTab("Watchlist");
+              setSelectedCollection(null);
+            }}
+          >
             Watchlist
           </button>
-          <button className={tab === "Favorites" ? "active" : ""} onClick={() => setTab("Favorites")}>
+          <button
+            className={tab === "Favorites" ? "active" : ""}
+            onClick={() => {
+              setTab("Favorites");
+              setSelectedCollection(null);
+            }}
+          >
             Favorites
           </button>
-          <button onClick={() => setCollectionOpen(true)}>Collections</button>
+          <button
+            className={tab === "Collection" ? "active" : ""}
+            onClick={() => setCollectionOpen(true)}
+          >
+            Collections {selectedCollection ? `(${selectedCollection})` : ""}
+          </button>
           <button onClick={() => setCommunityOpen(true)}>Cinephiles</button>
+          <button className="nav-search-btn" onClick={() => setAddModalOpen(true)}>
+            <span>⌕</span> Search & Add
+          </button>
         </div>
         <button
           className="profile"
@@ -578,33 +983,41 @@ export function Collection() {
             </h1>
             <p>The stories you’ve watched, loved, and reviewed in your personal vault.</p>
           </div>
-          <button onClick={() => setAddModalOpen(true)} className="button">
-            ＋ Log a title
-          </button>
         </section>
 
         {/* Interactive Stat Row - Clicking filters the view! */}
         <section className="stat-row">
-          <div style={{ cursor: "pointer" }} onClick={() => setTab("All")} title="View All Watched">
-            <b>{movies.length.toString().padStart(2, "0")}</b>
+          <div
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setTab("All");
+              setSelectedCollection(null);
+            }}
+            title="View All Watched"
+          >
+            <b>{watchedCount.toString().padStart(2, "0")}</b>
             <span>Watched</span>
           </div>
-          <div style={{ cursor: "pointer" }} onClick={() => setTab("Favorites")} title="View Favorites">
-            <b>
-              {movies
-                .filter((m) => m.favorite)
-                .length.toString()
-                .padStart(2, "0")}
-            </b>
+          <div
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setTab("Favorites");
+              setSelectedCollection(null);
+            }}
+            title="View Favorites"
+          >
+            <b>{favoritesCount.toString().padStart(2, "0")}</b>
             <span>Favorites</span>
           </div>
-          <div style={{ cursor: "pointer" }} onClick={() => setTab("Watchlist")} title="View Watchlist">
-            <b>
-              {movies
-                .filter((m) => m.watchlist)
-                .length.toString()
-                .padStart(2, "0")}
-            </b>
+          <div
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setTab("Watchlist");
+              setSelectedCollection(null);
+            }}
+            title="View Watchlist"
+          >
+            <b>{watchlistCount.toString().padStart(2, "0")}</b>
             <span>Watchlist</span>
           </div>
           <div style={{ cursor: "pointer" }} onClick={() => setCollectionOpen(true)} title="Manage Collections">
@@ -617,13 +1030,53 @@ export function Collection() {
           <div className="tabs">
             {["All", "Favorites", "Watchlist"].map((t) => (
               <button
-                onClick={() => setTab(t)}
+                onClick={() => {
+                  setTab(t);
+                  setSelectedCollection(null);
+                }}
                 className={tab === t ? "active" : ""}
                 key={t}
               >
                 {t}
               </button>
             ))}
+            {tab === "Collection" && selectedCollection && (
+              <div style={{ display: "inline-flex", alignItems: "center" }}>
+                <button
+                  className="active"
+                  style={{
+                    background: "#9472dc24",
+                    borderRadius: "99px 0 0 99px",
+                    padding: "4px 10px",
+                    color: "#d4c5ff",
+                    border: "1px solid #9472dc",
+                    borderRight: "none",
+                  }}
+                  onClick={() => setCollectionOpen(true)}
+                  title="Switch Collection Shelf"
+                >
+                  Shelf: {selectedCollection}
+                </button>
+                <button
+                  style={{
+                    background: "#9472dc24",
+                    borderRadius: "0 99px 99px 0",
+                    padding: "4px 8px",
+                    color: "#d4c5ff",
+                    border: "1px solid #9472dc",
+                    borderLeft: "none",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    setSelectedCollection(null);
+                    setTab("All");
+                  }}
+                  title="Clear shelf filter and show All"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             <span style={{ color: "#4c4556", margin: "0 6px" }}>|</span>
             {["All", "Movie", "Series", "Anime"].map((fmt) => (
               <button
@@ -653,9 +1106,19 @@ export function Collection() {
         ) : (
           <>
             <Shelf
-              title={tab === "All" ? (typeFilter === "All" ? "Recently added" : `${typeFilter}s`) : tab}
+              title={
+                tab === "Collection"
+                  ? `Shelf: ${selectedCollection}`
+                  : tab === "All"
+                  ? typeFilter === "All"
+                    ? "Recently watched"
+                    : `Watched ${typeFilter}s`
+                  : tab
+              }
               movies={filtered}
               onCardClick={(m) => nav(`/movie/${m.movieId || m._id || m.id}`)}
+              onEdit={(m) => setEditingMovie(m)}
+              onDelete={handleDeleteMovie}
             />
             {tab === "All" && typeFilter === "All" && (
               <>
@@ -663,11 +1126,15 @@ export function Collection() {
                   title="Favorites"
                   movies={movies.filter((m) => m.favorite)}
                   onCardClick={(m) => nav(`/movie/${m.movieId || m._id || m.id}`)}
+                  onEdit={(m) => setEditingMovie(m)}
+                  onDelete={handleDeleteMovie}
                 />
                 <Shelf
                   title="Watchlist"
                   movies={movies.filter((m) => m.watchlist)}
                   onCardClick={(m) => nav(`/movie/${m.movieId || m._id || m.id}`)}
+                  onEdit={(m) => setEditingMovie(m)}
+                  onDelete={handleDeleteMovie}
                 />
               </>
             )}
@@ -679,6 +1146,7 @@ export function Collection() {
         <SearchAddModal
           close={() => setAddModalOpen(false)}
           user={user}
+          collections={collections}
           onTitleAdded={(saved) => {
             setMovies((prev) => [saved, ...prev.filter((m) => (m._id || m.id) !== (saved._id || saved.id))]);
             setAddModalOpen(false);
@@ -693,6 +1161,23 @@ export function Collection() {
           name={newCollection}
           setName={setNewCollection}
           add={handleAddCollection}
+          selectedCollection={selectedCollection}
+          onSelectCollection={(colName) => {
+            setSelectedCollection(colName);
+            setTab("Collection");
+            setCollectionOpen(false);
+          }}
+          onDeleteCollection={handleDeleteCollection}
+        />
+      )}
+
+      {editingMovie && (
+        <EditCinemaModal
+          movie={editingMovie}
+          close={() => setEditingMovie(null)}
+          collections={collections}
+          onSave={handleSaveEdit}
+          onDelete={handleDeleteMovie}
         />
       )}
 
@@ -703,7 +1188,7 @@ export function Collection() {
   );
 }
 
-export function Shelf({ title, movies, onCardClick }) {
+export function Shelf({ title, movies, onCardClick, onEdit, onDelete }) {
   const nav = useNavigate();
   return (
     <section className="shelf">
@@ -720,13 +1205,19 @@ export function Shelf({ title, movies, onCardClick }) {
               movie={m}
               key={m._id || m.id}
               onClick={() => (onCardClick ? onCardClick(m) : nav(`/movie/${m.movieId || m._id || m.id}`))}
+              onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
         </div>
       ) : (
         <div className="empty">
-          <b>Nothing queued yet.</b>
-          <p>Find a story worth logging to your library.</p>
+          <b>{title.startsWith("Shelf:") ? `No titles on ${title} yet` : "Nothing queued yet."}</b>
+          <p>
+            {title.startsWith("Shelf:")
+              ? "Assign movies to this shelf when adding or reviewing a cinema title."
+              : "Find a story worth logging to your library."}
+          </p>
         </div>
       )}
     </section>
@@ -739,19 +1230,44 @@ export function Shelf({ title, movies, onCardClick }) {
  * Clicking a result adds or reviews it directly!
  * Stage 2: If title is not found, an option below allows adding a Brand New Cinema.
  */
-export function SearchAddModal({ close, user, onTitleAdded }) {
+export function SearchAddModal({ close, user, collections = [], onTitleAdded }) {
   const nav = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [showNewCinemaForm, setShowNewCinemaForm] = useState(false);
+  const debounceRef = useRef(null);
+
+  // Available collections for dropdown assignment
+  const [availableCollections, setAvailableCollections] = useState(
+    collections && collections.length
+      ? collections
+      : ["Late Night", "Mind Benders", "Comfort Movies", "Weekend Picks"],
+  );
+
+  useEffect(() => {
+    if (!collections || !collections.length) {
+      fetch("/api/collections")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length) {
+            setAvailableCollections(data.map((c) => c.name));
+          }
+        })
+        .catch(() => {});
+    } else {
+      setAvailableCollections(collections);
+    }
+  }, [collections]);
 
   // Quick review / add dialog for a selected existing catalog title
   const [selectedCatalogItem, setSelectedCatalogItem] = useState(null);
   const [quickRating, setQuickRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
   const [quickNote, setQuickNote] = useState("");
   const [quickFavorite, setQuickFavorite] = useState(false);
   const [quickWatchlist, setQuickWatchlist] = useState(false);
+  const [quickCollection, setQuickCollection] = useState("");
 
   // New cinema state if adding a brand new title
   const [newCinema, setNewCinema] = useState({
@@ -763,20 +1279,24 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
     file: "",
     rating: 5,
     note: "",
+    collectionName: "",
   });
 
   // Initial catalog load so users see popular titles immediately
   useEffect(() => {
     fetchSearchResults("");
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   const fetchSearchResults = async (q) => {
     setSearching(true);
     try {
-      const res = await fetch(`/api/movies/search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/movies/search?q=${encodeURIComponent(q.trim())}`);
       if (res.ok) {
         const data = await res.json();
-        setResults(data);
+        setResults(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error("Search error:", err);
@@ -785,8 +1305,17 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
     }
   };
 
+  const handleInputChange = (val) => {
+    setSearchTerm(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchSearchResults(val);
+    }, 150);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     fetchSearchResults(searchTerm);
   };
 
@@ -821,6 +1350,7 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
         userId: user?.id,
         favorite: quickFavorite,
         watchlist: quickWatchlist,
+        collectionName: quickCollection || "",
       };
 
       const res = await fetch("/api/movies", {
@@ -853,13 +1383,14 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
         year: newCinema.year || new Date().getFullYear().toString(),
         genre: newCinema.genre || "Unfiled",
         description: newCinema.description || "A captivating story curated in Reelbox.",
-        file: newCinema.file || "/Posters/images.jpg",
+        file: newCinema.file || "/Posters/saiyaara.jpg",
         rating: Number(newCinema.rating) || 5,
         note: newCinema.note.trim(),
         username: user?.name || "demo",
         userId: user?.id,
         favorite: false,
         watchlist: false,
+        collectionName: newCinema.collectionName || "",
       };
 
       const res = await fetch("/api/movies", {
@@ -889,99 +1420,179 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
 
         {selectedCatalogItem ? (
           /* Step 1B: Quick Review / Log dialog for selected title */
-          <div>
+          <div className="curate-vault-container">
             <button
+              type="button"
+              className="curate-back-btn"
               onClick={() => setSelectedCatalogItem(null)}
-              style={{
-                background: "none",
-                border: 0,
-                color: "#6b5993",
-                cursor: "pointer",
-                padding: 0,
-                marginBottom: 16,
-                fontWeight: 600,
-                fontSize: 13,
-              }}
             >
-              ← Back to search results
+              <span>←</span> Back to search results
             </button>
 
-            <div style={{ display: "flex", gap: 18, marginBottom: 20 }}>
-              <img
-                src={selectedCatalogItem.file}
-                alt=""
-                style={{ width: 80, height: 120, objectFit: "cover", borderRadius: 8 }}
-              />
-              <div>
-                <p className="eyebrow" style={{ margin: 0 }}>
+            <div className="curate-hero-card">
+              <div className="curate-poster-box">
+                <img
+                  src={selectedCatalogItem.file || "/Posters/saiyaara.jpg"}
+                  alt={selectedCatalogItem.title}
+                  className="curate-poster-img"
+                />
+              </div>
+              <div className="curate-hero-details">
+                <div className="curate-tags-row">
                   <span className={`type-badge ${(selectedCatalogItem.type || "Movie").toLowerCase()}`}>
                     {selectedCatalogItem.type || "Movie"}
                   </span>
-                  ADD TO YOUR VAULT
-                </p>
-                <h2 style={{ margin: "4px 0" }}>{selectedCatalogItem.title}</h2>
-                <small style={{ color: "#666" }}>
-                  {selectedCatalogItem.year} · {selectedCatalogItem.genre}
-                </small>
+                  <span className="curate-dot">•</span>
+                  <span className="curate-eyebrow">ADD TO YOUR VAULT</span>
+                </div>
+                <h2 className="curate-title">{selectedCatalogItem.title}</h2>
+                <div className="curate-meta-line">
+                  <span className="curate-year">{selectedCatalogItem.year}</span>
+                  <span className="curate-dot">•</span>
+                  <span className="curate-genre">{selectedCatalogItem.genre || "Cinema"}</span>
+                </div>
+                {selectedCatalogItem.description && (
+                  <p className="curate-desc">
+                    {selectedCatalogItem.description.slice(0, 160)}
+                    {selectedCatalogItem.description.length > 160 ? "..." : ""}
+                  </p>
+                )}
               </div>
             </div>
 
-            <form onSubmit={handleQuickAddExisting} style={{ display: "grid", gap: 14 }}>
-              <div className="two">
-                <label>
-                  Your Rating
-                  <select value={quickRating} onChange={(e) => setQuickRating(+e.target.value)}>
-                    {[5, 4, 3, 2, 1].map((n) => (
-                      <option key={n} value={n}>
-                        {n} Stars ({"★".repeat(n)})
-                      </option>
-                    ))}
-                  </select>
-                </label>
+            <form onSubmit={handleQuickAddExisting} className="curate-form">
+              {/* Watch Status & Shelf */}
+              <div className="curate-grid-two">
+                <div className="curate-field-group">
+                  <label>Watch Status</label>
+                  <div className="curate-toggle-group">
+                    <button
+                      type="button"
+                      className={`curate-toggle-btn ${!quickWatchlist ? "active" : ""}`}
+                      onClick={() => setQuickWatchlist(false)}
+                    >
+                      <span>✓</span> Watched
+                    </button>
+                    <button
+                      type="button"
+                      className={`curate-toggle-btn ${quickWatchlist ? "active" : ""}`}
+                      onClick={() => setQuickWatchlist(true)}
+                    >
+                      <span>⏱</span> Save to Watchlist
+                    </button>
+                  </div>
+                </div>
 
-                <label>
-                  Watch Status
-                  <select
-                    value={quickWatchlist ? "watchlist" : "watched"}
-                    onChange={(e) => setQuickWatchlist(e.target.value === "watchlist")}
-                  >
-                    <option value="watched">Mark as Watched</option>
-                    <option value="watchlist">Save to Watchlist</option>
-                  </select>
-                </label>
+                <div className="curate-field-group">
+                  <label>Assign to Shelf</label>
+                  <div className="curate-select-wrap">
+                    <select
+                      className="curate-select"
+                      value={quickCollection}
+                      onChange={(e) => setQuickCollection(e.target.value)}
+                    >
+                      <option value="">No Shelf (Unfiled)</option>
+                      {availableCollections.map((c) => (
+                        <option key={c} value={c}>
+                          📁 {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <label>
-                Personal Review & Memories
-                <textarea
-                  rows="3"
-                  value={quickNote}
-                  onChange={(e) => setQuickNote(e.target.value)}
-                  placeholder="Leave a thought for your future self..."
-                />
-              </label>
+              {quickWatchlist ? (
+                /* Watchlist Mode - Interface is completely separate! No ratings or reviews! */
+                <div className="watchlist-mode-notice" style={{ margin: "10px 0 16px" }}>
+                  <span className="notice-icon">⏱</span>
+                  <div>
+                    <b>Save to Watchlist (Unwatched)</b>
+                    <p>
+                      This title will be saved to your Watchlist. Ratings and personal reviews are locked until you have watched this story.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Watched Mode - Full Rating, Review, and Favorite */
+                <>
+                  {/* Interactive Star Rating */}
+                  <div className="curate-field-group">
+                    <div className="curate-field-header">
+                      <label>Your Rating</label>
+                      <span className="curate-rating-badge">
+                        {(hoverRating || quickRating) === 5 && "★★★★★ · 5.0 Masterpiece"}
+                        {(hoverRating || quickRating) === 4 && "★★★★☆ · 4.0 Great Story"}
+                        {(hoverRating || quickRating) === 3 && "★★★☆☆ · 3.0 Good Watch"}
+                        {(hoverRating || quickRating) === 2 && "★★☆☆☆ · 2.0 Mediocre"}
+                        {(hoverRating || quickRating) === 1 && "★☆☆☆☆ · 1.0 Not for me"}
+                      </span>
+                    </div>
+                    <div className="curate-stars-row">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          className={`star-btn ${(hoverRating || quickRating) >= star ? "active" : ""}`}
+                          onClick={() => setQuickRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          title={`${star} Stars`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                      <span className="star-score-num">{quickRating} / 5</span>
+                    </div>
+                  </div>
 
-              <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13 }}>
-                <input
-                  type="checkbox"
-                  style={{ width: "auto" }}
-                  checked={quickFavorite}
-                  onChange={(e) => setQuickFavorite(e.target.checked)}
-                />
-                Mark as Favorite (♥)
-              </label>
+                  {/* Personal Review & Memories */}
+                  <div className="curate-field-group">
+                    <div className="curate-field-header">
+                      <label>Personal Review & Memories</label>
+                      <span className="curate-hint">Saved to cinema page</span>
+                    </div>
+                    <textarea
+                      className="curate-textarea"
+                      rows="3"
+                      value={quickNote}
+                      onChange={(e) => setQuickNote(e.target.value)}
+                      placeholder="Leave a thought for your future self... (What made this memorable, favorite scene, or quotes?)"
+                    />
+                  </div>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                <button className="button" type="submit">
-                  Save to My Reelbox <Arrow />
+                  {/* Favorite Toggle Button */}
+                  <div className="curate-fav-row">
+                    <button
+                      type="button"
+                      className={`curate-fav-btn ${quickFavorite ? "active" : ""}`}
+                      onClick={() => setQuickFavorite(!quickFavorite)}
+                    >
+                      <span className="fav-heart">{quickFavorite ? "♥" : "♡"}</span>
+                      <span className="fav-text">
+                        {quickFavorite ? "Favorited in your Vault" : "Mark as Favorite (♥)"}
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Actions Footer */}
+              <div className="curate-actions-footer">
+                <button className="button curate-save-btn" type="submit">
+                  <span>{quickWatchlist ? "Save to Watchlist ⏱" : "Save to My Watched Vault ✓"}</span>
+                  <Arrow />
                 </button>
                 <button
                   type="button"
-                  className="line-button"
-                  style={{ width: "auto" }}
-                  onClick={() => nav(`/movie/${selectedCatalogItem._id}`)}
+                  className="line-button curate-page-btn"
+                  onClick={() => {
+                    close();
+                    nav(`/movie/${selectedCatalogItem._id || selectedCatalogItem.id}`);
+                  }}
                 >
-                  View Movie Page
+                  <span>View Movie Page</span>
+                  <i>↗</i>
                 </button>
               </div>
             </form>
@@ -1081,14 +1692,35 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
                     </label>
                   </div>
 
-                  <label>
-                    Synopsis / Description
-                    <input
-                      value={newCinema.description}
-                      onChange={(e) => setNewCinema({ ...newCinema, description: e.target.value })}
-                      placeholder="Brief summary of the story..."
-                    />
-                  </label>
+                  <div className="two">
+                    <label>
+                      Collection Shelf
+                      <select
+                        value={newCinema.collectionName}
+                        onChange={(e) =>
+                          setNewCinema({ ...newCinema, collectionName: e.target.value })
+                        }
+                      >
+                        <option value="">No Shelf (Unfiled)</option>
+                        {availableCollections.map((c) => (
+                          <option key={c} value={c}>
+                            📁 {c}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Synopsis / Description
+                      <input
+                        value={newCinema.description}
+                        onChange={(e) =>
+                          setNewCinema({ ...newCinema, description: e.target.value })
+                        }
+                        placeholder="Brief summary of the story..."
+                      />
+                    </label>
+                  </div>
 
                   <label>
                     Personal Review & Note
@@ -1120,10 +1752,7 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
                 className="search-cinema-input"
                 autoFocus
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  fetchSearchResults(e.target.value);
-                }}
+                onChange={(e) => handleInputChange(e.target.value)}
                 placeholder="Search title (e.g. Dark Knight, Inception, Dune)..."
               />
               <button className="button" type="submit" style={{ padding: "0 22px" }}>
@@ -1138,9 +1767,29 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
                 {results.map((item) => (
                   <div key={item._id} className="cinema-result-card">
                     <div className="cinema-result-left">
-                      <img className="cinema-result-poster" src={item.file} alt="" />
+                      <div
+                        className="cinema-poster-hover-wrap"
+                        style={{ cursor: "pointer" }}
+                        title={`View ${item.title} page`}
+                        onClick={() => {
+                          close();
+                          nav(`/movie/${item._id || item.id}`);
+                        }}
+                      >
+                        <img className="cinema-result-poster" src={item.file} alt={item.title} />
+                        <div className="poster-enter-hint">↗</div>
+                      </div>
                       <div className="cinema-result-info">
-                        <b>{item.title}</b>
+                        <b
+                          className="cinema-title-hover"
+                          title={`View ${item.title} page`}
+                          onClick={() => {
+                            close();
+                            nav(`/movie/${item._id || item.id}`);
+                          }}
+                        >
+                          {item.title} <span style={{ fontSize: 11, color: "#9472dc" }}>↗</span>
+                        </b>
                         <small>
                           <span className={`type-badge ${(item.type || "Movie").toLowerCase()}`}>
                             {item.type || "Movie"}
@@ -1150,6 +1799,7 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
                       </div>
                     </div>
                     <button
+                      type="button"
                       className="cinema-add-btn"
                       onClick={() => setSelectedCatalogItem(item)}
                     >
@@ -1189,7 +1839,16 @@ export function SearchAddModal({ close, user, onTitleAdded }) {
   );
 }
 
-export function CollectionModal({ collections, close, name, setName, add }) {
+export function CollectionModal({
+  collections = [],
+  close,
+  name,
+  setName,
+  add,
+  selectedCollection,
+  onSelectCollection,
+  onDeleteCollection,
+}) {
   return (
     <div className="modal-back" onMouseDown={close}>
       <div className="collection-modal" onMouseDown={(e) => e.stopPropagation()}>
@@ -1198,14 +1857,50 @@ export function CollectionModal({ collections, close, name, setName, add }) {
         </button>
         <p className="eyebrow">YOUR SHELVES</p>
         <h2>Collections</h2>
+
         <div className="collection-list">
+          <button
+            type="button"
+            className={!selectedCollection ? "active" : ""}
+            onClick={() => {
+              if (onSelectCollection) onSelectCollection(null);
+              close();
+            }}
+          >
+            <span>All Titles & Shelves</span>
+            <i>↗</i>
+          </button>
+
           {collections.map((c) => (
-            <span key={c}>
-              {c}
-              <i>↗</i>
-            </span>
+            <div key={c} className="collection-row">
+              <button
+                type="button"
+                className={selectedCollection === c ? "active" : ""}
+                onClick={() => {
+                  if (onSelectCollection) onSelectCollection(c);
+                  close();
+                }}
+              >
+                <span>📁 {c}</span>
+                <i>↗</i>
+              </button>
+              {onDeleteCollection && (
+                <button
+                  type="button"
+                  className="shelf-delete-btn"
+                  title={`Delete shelf "${c}"`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteCollection(c);
+                  }}
+                >
+                  🗑
+                </button>
+              )}
+            </div>
           ))}
         </div>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -1217,7 +1912,9 @@ export function CollectionModal({ collections, close, name, setName, add }) {
             onChange={(e) => setName(e.target.value)}
             placeholder="A new collection"
           />
-          <button className="button" type="submit">Create</button>
+          <button className="button" type="submit">
+            Create
+          </button>
         </form>
       </div>
     </div>
@@ -1227,24 +1924,32 @@ export function CollectionModal({ collections, close, name, setName, add }) {
 export function CommunityModal({ close }) {
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState([]);
+  const [searching, setSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const nav = useNavigate();
 
-  useEffect(() => {
-    fetchUsers("");
-  }, []);
-
+  // Only search when user types a query; do not show existing users by default
   const fetchUsers = async (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) {
+      setUsers([]);
+      setSearching(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+      setSearching(true);
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(trimmed)}`);
       if (res.ok) {
         const data = await res.json();
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error("Error fetching users:", err);
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -1386,21 +2091,41 @@ export function CommunityModal({ close }) {
               value={query}
               onChange={handleSearch}
               placeholder="Search by username..."
+              autoFocus
             />
 
-            <div className="user-grid">
-              {users.map((u) => (
-                <div
-                  key={u._id}
-                  className="user-card"
-                  onClick={() => openProfile(u.name)}
-                >
-                  <div className="user-avatar">{u.name.slice(0, 2).toUpperCase()}</div>
-                  <h3>{u.name}</h3>
-                  <p>{u.bio || "Story collector."}</p>
+            {searching ? (
+              <p style={{ color: "#888", textAlign: "center", margin: "30px 0" }}>
+                Searching for cinephile...
+              </p>
+            ) : query.trim() ? (
+              users.length > 0 ? (
+                <div className="user-grid">
+                  {users.map((u) => (
+                    <div
+                      key={u._id}
+                      className="user-card"
+                      onClick={() => openProfile(u.name)}
+                    >
+                      <div className="user-avatar">{u.name.slice(0, 2).toUpperCase()}</div>
+                      <h3>{u.name}</h3>
+                      <p>{u.bio || "Story collector."}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="empty" style={{ margin: "30px 0" }}>
+                  <b>No cinephile found matching "{query}".</b>
+                  <p>Check the exact username and try again.</p>
+                </div>
+              )
+            ) : (
+              <div className="empty" style={{ margin: "30px 0" }}>
+                <p style={{ color: "#7a7285", fontSize: 13 }}>
+                  Type a username above to search for cinephiles.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

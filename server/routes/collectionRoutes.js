@@ -1,5 +1,6 @@
 import express from "express";
 import Collection from "../models/Collection.js";
+import WatchEntry from "../models/WatchEntry.js";
 
 const router = express.Router();
 
@@ -43,6 +44,29 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error("Error creating collection:", error);
     res.status(500).json({ message: "Failed to create collection", error: error.message });
+  }
+});
+
+/**
+ * @route   DELETE /api/collections/:name
+ * @desc    Delete a collection shelf
+ */
+router.delete("/:name", async (req, res) => {
+  try {
+    const { name } = req.params;
+    const deleted = await Collection.findOneAndDelete({ name: decodeURIComponent(name) });
+    if (!deleted) {
+      return res.status(404).json({ message: "Collection not found" });
+    }
+    // Set unfiled for movies on this shelf
+    await WatchEntry.updateMany(
+      { collectionName: decodeURIComponent(name) },
+      { $set: { collectionName: "" } }
+    );
+    res.json({ message: "Collection deleted successfully", name });
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+    res.status(500).json({ message: "Failed to delete collection", error: error.message });
   }
 });
 

@@ -4,6 +4,10 @@ import WatchEntry from "../models/WatchEntry.js";
 
 const router = express.Router();
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * @route   GET /api/users/search
  * @desc    Search users by username
@@ -12,18 +16,15 @@ router.get("/search", async (req, res) => {
   try {
     const { q } = req.query;
     if (!q || !q.trim()) {
-      // Return recent active users if query is empty
-      const users = await User.find({}, "name bio createdAt")
-        .sort({ createdAt: -1 })
-        .limit(10);
-      return res.json(users);
+      // Do not return any users when query is empty
+      return res.json([]);
     }
 
+    const clean = escapeRegex(q.trim());
     const users = await User.find(
-      { name: { $regex: q.trim(), $options: "i" } },
+      { name: { $regex: clean, $options: "i" } },
       "name bio createdAt"
-    )
-      .limit(10);
+    ).limit(10);
 
     res.json(users);
   } catch (error) {
